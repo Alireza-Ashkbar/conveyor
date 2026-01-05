@@ -1,0 +1,146 @@
+stages:
+  - test
+  - validation
+  - deploy
+
+# =========================================================
+# STAGE 1: UNIT TESTS (Runs on Push)
+# =========================================================
+unit_tests:
+  stage: test
+  image: node:18-bullseye # switch from alpine to Debian-based for better compatibility
+  tags:
+    - react
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  script:
+    # Ensure clean install of all dependencies including devDependencies
+    - npm ci
+    
+    # Explicitly install jest-environment-jsdom just to be safe
+    - npm install --save-dev jest-environment-jsdom
+    
+    # Run Jest using npx to pick local version
+    - npx jest --ci --passWithNoTests
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /dev_ops/'
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^feature\//'
+    - if: '$CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master"'
+
+# =========================================================
+# STAGE 2: MR VALIDATION (Runs on Merge Request)
+# =========================================================
+mr_validation_tests:
+  stage: validation
+  image: node:18-alpine
+  tags:
+    - react
+  script:
+    - npm ci
+    # Wrapped in single quotes to prevent YAML colon confusion
+    - 'npm run lint || echo "Warning: Linting issues found"'
+  # ensure 'rules' is aligned exactly with 'script' (2 spaces indentation)
+  rules:
+    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /dev_ops/'
+      allow_failure: true
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# =========================================================
+# STAGE 3: DEPLOY PREVIEW (Feature Branches - Dynamic Port)
+# =========================================================
+deploy_frontend_preview:
+  stage: deploy
+  tags:
+    - shell
+  script:
+    # --- FIX 1: Double $$ in awk so GitLab doesn't eat the variable ---
+    - export DYNAMIC_PORT=$(echo $CI_COMMIT_REF_SLUG | cksum | cut -d' ' -f1 | awk '{print $$1 % 5000 + 4000}')
+    
+    # --- FIX 2: Export variable to .env file for environment URL ---
+    - echo "DYNAMIC_PORT=$DYNAMIC_PORT" >> deploy.env
+    
+    - echo "Deploying Preview $CI_COMMIT_REF_SLUG to Port $DYNAMIC_PORT..."
+    - mkdir -p /opt/apps/frontend/$CI_COMMIT_REF_SLUG
+    
+    # Sync Files
+    - rsync -av --delete --exclude='node_modules' --exclude='.git' . /opt/apps/frontend/$CI_COMMIT_REF_SLUG
+    
+    # Deploy
+    - cd /opt/apps/frontend/$CI_COMMIT_REF_SLUG
+    - export PORT=$DYNAMIC_PORT
+    - export ENV_NAME=$CI_COMMIT_REF_SLUG
+    - docker compose up -d --build --remove-orphans
+    
+    - echo "App deployed at http://your-server-ip:$DYNAMIC_PORT"
+
+  # --- FIX 2 Continued: Register the dotenv artifact ---
+  artifacts:
+    reports:
+      dotenv: deploy.env
+
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    # Now GitLab can read DYNAMIC_PORT from the dotenv artifact
+    url: http://your-server-ip:$DYNAMIC_PORT
+    on_stop: stop_frontend_preview
+    
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^feature\//'
+
+# =========================================================
+# CLEANUP JOB (Stops Preview Env)
+# =========================================================
+stop_frontend_preview:
+  stage: deploy
+  tags:
+    - shell
+  script:
+    - echo "Stopping environment review/$CI_COMMIT_REF_SLUG..."
+    # Check if directory exists to avoid errors
+    - |
+      if [ -d "/opt/apps/frontend/$CI_COMMIT_REF_SLUG" ]; then
+        cd /opt/apps/frontend/$CI_COMMIT_REF_SLUG
+        export ENV_NAME=$CI_COMMIT_REF_SLUG
+        docker compose down
+        cd ..
+        rm -rf $CI_COMMIT_REF_SLUG
+      else
+        echo "Directory not found, skipping cleanup."
+      fi
+    
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^feature\//'
+      when: manual
+      allow_failure: true
+
+# =========================================================
+# STAGE 3: DEPLOY DEV (Dev Branch - Fixed Port 3000)
+# =========================================================
+deploy_frontend_dev:
+  stage: deploy
+  tags:
+    - shell
+  script:
+    - echo "Deploying Stable Dev to Port 3000..."
+    - mkdir -p /opt/apps/frontend/dev
+    - rsync -av --delete --exclude='node_modules' --exclude='.git' . /opt/apps/frontend/dev
+    - cd /opt/apps/frontend/dev
+    - export PORT=3000
+    - export ENV_NAME=dev
+    - docker compose -p $ENV_NAME down || true
+    - docker compose -p $ENV_NAME up -d --build --remove-orphans
+    
+    
+  environment:
+    name: dev
+    url: http://your-server-ip:3000
+    
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'

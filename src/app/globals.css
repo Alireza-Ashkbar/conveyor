@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F8F8F8;
+  --foreground: #2C2F33;
+  --color-primary: #2C3E50;
+  --color-error: #DC3545;
+  --color-warning: #FFC107;
+  --color-success: #28A745;
+  --color-info: #007BFF;
+
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-inter);
+  --color-primary: var(--color-primary);
+  --color-error: var(--color-error);
+  --color-warning: var(--color-warning);
+  --color-success: var(--color-success);
+  --color-info: var(--color-info);
+  --color-primary-content: var(--color-white);
+}
+
+@layer base {
+  .btn {
+    @apply cursor-pointer no-underline select-none;
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-3 py-3.5 border border-transparent rounded-lg;
+    @apply h-14 text-center;
+    @apply transition-all duration-200 ease-in-out;
+    @apply text-base font-medium;
+
+    &:disabled {
+      @apply cursor-default bg-primary/70;
+    }
+
+    &.btn-primary {
+      @apply bg-primary text-white;
+
+      &:not(:disabled) {
+        @apply hover:bg-primary/90;
+      }
+    }
+
+    &.btn-error {
+      @apply bg-error text-white;
+
+      &:not(:disabled) {
+        @apply hover:bg-error/90;
+      }
+    }
+
+    &.btn-warning {
+      @apply bg-warning text-white;
+
+      &:not(:disabled) {
+        @apply hover:bg-warning/90;
+      }
+    }
+
+    &.btn-primary-o {
+      @apply text-primary border-primary;
+
+      &:not(:disabled) {
+        @apply hover:bg-primary/5;
+      }
+    }
+
+    &.btn-default {
+      @apply text-zinc-800 bg-gray-50 border border-zinc-100;
+
+      &:not(:disabled) {
+        @apply hover:border-zinc-200;
+      }
+    }
+
+    /* <div className="size- px-8 py-4 bg-slate-700/10 rounded-xl inline-flex justify-start items-center gap-4">
+ */
+    &.btn-gray {
+      @apply text-slate-700 bg-zinc-200 border border-zinc-200;
+
+      &:not(:disabled) {
+        @apply hover:bg-zinc-300;
+      }
+    }
+
+    &.btn-outline {
+      @apply text-zinc-900 bg-neutral-50 border-2 border-[#EFEFEF];
+
+      &:not(:disabled) {
+        @apply hover:border-zinc-200;
+      }
+    }
+  }
+
+  .form-control {
+    @apply placeholder:text-zinc-400 placeholder:text-sm text-zinc-800 text-base font-medium;
+    @apply min-h-12 w-full py-3 px-3 relative bg-gray-50 rounded-lg border border-zinc-100 outline-0;
+    @apply transition-all focus:border-zinc-300;
+  }
+
+  input[type="text"] {
+    @apply placeholder:text-zinc-400 placeholder:text-sm text-zinc-800 text-base font-medium;
+    @apply h-12 w-full px-3 relative bg-gray-50 rounded-lg border border-zinc-100 outline-0;
+    @apply transition-all focus:border-zinc-300;
+  }
+
+  input[type="radio"] {
+    @apply relative cursor-pointer appearance-none transition-all outline-0;
+    @apply size-6 rounded-full bg-gray-50 border border-gray-300;
+
+    &::after {
+      @apply content-[''] size-2.5 rounded-full;
+      @apply absolute top-1/2 left-1/2 -translate-1/2
+    }
+
+    &:checked {
+      @apply bg-primary border-primary;
+
+      &::after {
+        @apply bg-white;
+      }
+
+    }
+  }
+
+  .radio-select {
+    @apply cursor-pointer p-2 rounded-lg border border-gray-300 flex items-center gap-3 transition-all;
+
+    &:has(input[type="radio"]:checked) {
+      @apply border-info bg-info/5
+    }
+
+    input[type="radio"] {
+      @apply relative cursor-pointer appearance-none transition-all;
+      @apply size-4 rounded-full bg-white border border-gray-300;
+
+      &::after {
+        @apply content-[''] size-2 rounded-full;
+        @apply absolute top-1/2 left-1/2 -translate-1/2
+      }
+
+      &:checked {
+        @apply bg-info border-info;
+
+        &::after {
+          @apply bg-white;
+        }
+      }
+    }
+  }
+
+  .custom-check {
+    @apply relative cursor-pointer flex items-center;
+
+    input[type="checkbox"] {
+      @apply cursor-pointer p-2 appearance-none size-8 rounded-sm bg-neutral-50 border border-gray-100 transition-all;
+
+      &:hover {
+        @apply border-gray-200;
+      }
+
+      &:checked {
+        @apply bg-primary border-primary;
+      }
+    }
+
+    &::after {
+      @apply content-[''] size-8 absolute inset-0 bg-contain bg-[url(/images/check.svg)];
+
+    }
+  }
+
+  .container {
+    @apply px-6 mx-auto;
+  }
+
+  .card {
+    @apply bg-white rounded-xl border border-gray-100 p-8;
+  }
+
+  .table {
+    @apply text-left text-zinc-900 text-base font-medium min-w-full w-max;
+
+    thead {
+      tr {
+        /* @apply ; */
+      }
+
+      th {
+        @apply py-4 px-6 text-black bg-neutral-100 text-base font-medium;
+
+        &:first-child {
+          @apply rounded-l-lg
+        }
+
+        &:last-child {
+          @apply rounded-r-lg
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        @apply border-b border-b-gray-200;
+
+        &:last-child {
+          @apply border-b-transparent
+        }
+
+        td {
+          @apply py-5 px-6;
+        }
+      }
+    }
+  }
+
+  .status {
+    @apply inline-flex items-center gap-1 p-2 rounded-md border text-sm font-normal w-max;
+
+    &.status-successs {
+      @apply bg-green-600/10 border-green-600 text-green-600
+    }
+
+    &.status-danger, &.status-error {
+      @apply bg-rose-500/5 border-[#DC3545] text-[#DC3545]
+    }
+  }
+}
+
+
+@layer utilities {
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  /* font-family: Arial, Helvetica, sans-serif; */
+}
+
+select.select-base {
+  position: relative;
+  outline: 0;
+  padding-right: 2rem;
+  appearance: none;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none"><path d="M12 17.2999C11.3 17.2999 10.6 17.0299 10.07 16.4999L3.55002 9.97989C3.26002 9.68989 3.26002 9.20989 3.55002 8.91989C3.84002 8.62989 4.32002 8.62989 4.61002 8.91989L11.13 15.4399C11.61 15.9199 12.39 15.9199 12.87 15.4399L19.39 8.91989C19.68 8.62989 20.16 8.62989 20.45 8.91989C20.74 9.20989 20.74 9.68989 20.45 9.97989L13.93 16.4999C13.4 17.0299 12.7 17.2999 12 17.2999Z" fill="%232C3E50"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0rem top 50%;
+  background-size: 1.5rem auto;
+}
