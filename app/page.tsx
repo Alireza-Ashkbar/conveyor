@@ -41,7 +41,7 @@ export default function Home() {
       <Canvas camera={{ position: [0, 1.6, 3], fov: 60 }}>
         <XR store={store}>
           <ambientLight intensity={1} />
-          <Conveyor position={[0, 0, 0]} scale={1} />
+          <Conveyor position={[50, 0, 0]} scale={1} />
         </XR>
       </Canvas>
     </>
