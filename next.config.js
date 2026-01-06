@@ -1,14 +1,18 @@
+// next.config.js
+const webpack = require('webpack');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true, // recommended
-  webpack: (config) => {
-    // Prevent duplicate THREE instances (important for R3F / @react-three/xr)
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      three: require.resolve('three'),
-    }
-    return config
-  },
-}
+  webpack: (config, { webpack }) => {
+    // This fixes potential "THREE is not defined" from legacy deps like three-bmfont-text
+    config.plugins.push(
+      new webpack.ProvidePlugin({
+        THREE: 'three',
+      })
+    );
 
-export default nextConfig
+    return config;
+  },
+};
+
+module.exports = nextConfig;
