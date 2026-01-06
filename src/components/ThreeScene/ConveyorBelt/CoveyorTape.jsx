@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { ConveyorMarker } from "./ConveyorMarker";
 import { TextLabel } from "../TextLabel";
 import { MemsecoLogo3D } from "../MemsecoLogo3D";
+import { ConveyorControls3D } from "../ConveyorControls3D";
 
 export function ConveyorTape({
   position = [0, 0, 0],
@@ -136,7 +137,6 @@ export function ConveyorTape({
           metalness={0.2}
         />
       </mesh>
-
       <ConveyorMarker
         path={path}
         speed={speed}
